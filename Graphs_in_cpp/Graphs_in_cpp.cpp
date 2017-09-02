@@ -8,7 +8,7 @@
 #include <cmath>
 #include <climits>
 using namespace std;
-const int N = 10, E = 40, K = 50;
+const int N = 5, E = 10, K = 50;
 
 
 //Other
@@ -27,14 +27,22 @@ void Swap(int* &A, int i, int j) {
 	A[i] = tmp;
 }
 int Get_min(int* A, bool* &B, int n) {
-	int min = A[0], id_min = 0;
-	for (int i = 1; i < n; i++) {
+	int min, id_min;
+
+	for (int i = 0; i < n; i++) 
+		if (!B[i]) {
+			min = A[i];
+			id_min = i;
+		}
+
+	for (int i = 0; i < n; i++) {
 		if (!B[i] && A[i] < min) {
 			min = A[i];
 			id_min = i;
 		}
 	}
-	B[id_min] = false;
+
+	B[id_min] = true;
 	return id_min;
 }
 
@@ -63,6 +71,7 @@ struct Stack {
 Stack *Init_stack() {
 	Stack* S = new Stack;
 	S->top = NULL;
+	return S;
 }
 bool Empty_stack(Stack *S) {
 	if (S->top == NULL) return true;
@@ -71,6 +80,7 @@ bool Empty_stack(Stack *S) {
 int Pop_stack(Stack *S) {
 	int x = S->top->id;
 	S->top = S->top->next;
+	return x;
 }
 void Push_stack(Stack *&S, Vertex *x) {
 	Push_vertex(S->top, x);
@@ -90,9 +100,9 @@ bool Empty_queue(Queue* &Q) {
 	else return false;
 }
 void Push_queue(Queue* &Q, int id) {
-	Vertex* x = Init_vertex(id,0);
+	Vertex* x = Init_vertex(id, 0);
 
-	if (Empty_queue(Q)) Q->head  = x;
+	if (Empty_queue(Q)) Q->head = x;
 	else Q->tail->next = x;
 
 	Q->tail = x;
@@ -107,7 +117,7 @@ int Pop_queue(Queue* &Q) {
 	}
 }
 void Print_queue(Queue* Q) {
-	for (Vertex* tmp = Q->head; tmp != NULL; tmp = tmp->next) cout << tmp->id <<  " ";
+	for (Vertex* tmp = Q->head; tmp != NULL; tmp = tmp->next) cout << tmp->id << " ";
 	cout << endl;
 }
 
@@ -166,6 +176,7 @@ int Pop_heap(heap* H) {
 		Heapify(H, 0);
 		return max;
 	}
+	else return -1;
 }
 
 //Lasy zbiorow rozlaczynch
@@ -174,7 +185,7 @@ struct node {
 	node *parent;
 };
 node* Init_node(int key) {
-	node *x;
+	node *x=new node;
 	x->key = key;
 	x->parent = x;
 	x->rank = 0;
@@ -214,7 +225,7 @@ int Partition(Edge** &A, int start, int end) {
 		do j--; while (A[j]->w > x);
 		if (i < j) {
 			int tmp = A[i]->w;
-			A[i]->w= A[j]->w;
+			A[i]->w = A[j]->w;
 			A[j]->w = tmp;
 		}
 		else return j;
@@ -238,13 +249,13 @@ struct Graph {
 	int e;
 };
 
-	//Basic
+//Basic
 Graph* Init_graph(int n, int e, int k) {
 	Graph* G = new Graph;
 	G->n = n;
 	G->e = e;
 
-	G->V = new Vertex*[n]; 
+	G->V = new Vertex*[n];
 
 	for (int i = 0; i < n; i++)
 		G->V[i] = NULL;
@@ -253,7 +264,7 @@ Graph* Init_graph(int n, int e, int k) {
 
 	for (int i = 0; i < e; i++) {
 		int x = rand() % n, y = rand() % n, w = rand() % k;
-		Push_vertex(G->V[x], Init_vertex(y,w));
+		Push_vertex(G->V[x], Init_vertex(y, w));
 		G->E[i] = Init_edge(x, y, w);
 	}
 
@@ -271,7 +282,7 @@ int** Transform_graph(Graph* G) {
 	for (int i = 0; i < G->n; i++)
 		for (Vertex* tmp = G->V[i]; tmp != NULL; tmp = tmp->next)
 			D[i][tmp->id] = tmp->w;
-		
+
 	return D;
 }
 void Print_graph(Graph* G) {
@@ -282,7 +293,7 @@ void Print_graph(Graph* G) {
 	}
 }
 
-	//Traversal
+//Traversal
 void BFS(Graph* G, int* &D, int* &P, int s) {
 	//Preparing
 	bool* B = new bool[G->n];
@@ -314,15 +325,15 @@ void BFS(Graph* G, int* &D, int* &P, int s) {
 		}
 	}
 
-	
+
 
 	delete[] B;
 }
 
-void DFS_visit(Graph* G, int* &P, bool* &B, int u){
-
-	for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next) 
+void DFS_visit(Graph* G, int* &P, bool* &B, int u) {
+	for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next)
 		if (!B[tmp->id]) {
+			B[tmp->id] = true;
 			P[tmp->id] = u;
 			DFS_visit(G, P, B, tmp->id);
 		}
@@ -347,7 +358,7 @@ void DFS(Graph* G, int* &P) {
 void Topological_sort_visit(Graph* G, Stack* &S, bool* &B, int u) {
 
 	for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next)
-		if (!B[tmp->id]) 
+		if (!B[tmp->id])
 			Topological_sort_visit(G, S, B, tmp->id);
 
 	Push_stack(S, Init_vertex(u, 0));
@@ -357,7 +368,7 @@ void Topological_sort(Graph* G, int *&K) {
 	Stack *S = Init_stack();
 
 	for (int i = 0; i < G->n; i++) B[i] = false;
-	
+
 	Topological_sort_visit(G, S, B, 0);
 
 	for (int i = 0; i < G->n; i++) K[i] = Pop_stack(S);
@@ -370,7 +381,7 @@ void Eulerian_cycle_visit(Graph *G, int **&M, Stack *&S, int u) {
 
 	for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next)
 		if (M[u][tmp->id] != INT_MIN) {
-			M[u][tmp->id] == INT_MIN;
+			M[u][tmp->id] = INT_MIN;
 			Eulerian_cycle_visit(G, M, S, tmp->id);
 		}
 
@@ -383,11 +394,11 @@ void Eulerian_cycle(Graph* G, int *&K) {
 	Eulerian_cycle_visit(G, M, S, 0);
 
 	for (int i = 0; i < G->n; i++) { K[i] = Pop_stack(S); delete[] M[i]; }
-	
+
 	delete S;
 }
 
-	//MST
+//MST
 void Prim(Graph* G, int* &P) {
 	//Preparing
 	bool* B = new bool[G->n];
@@ -406,7 +417,7 @@ void Prim(Graph* G, int* &P) {
 	for (int i = 0; i < G->n; i++) {
 		int u = Get_min(Key, B, G->n);
 
-		for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next) 
+		for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next)
 			if (!B[tmp->id] && tmp->w < Key[tmp->id]) {
 				P[tmp->id] = u;
 				Key[tmp->id] = tmp->w;
@@ -438,14 +449,14 @@ void Kruskal(Graph* G, int* &P) {
 	delete[] F;
 }
 
-	//Shortest Paths
-bool Relax(int* &D, int *&P,  int start, int end, int weight) {
+//Shortest Paths
+bool Relax(int* &D, int *&P, int start, int end, int weight) {
 	if (D[end] > D[start] + weight) {
 		D[end] = D[start] + weight;
 		P[end] = start;
 		return true;
 	}
-	
+
 	return false;
 }
 void Dijikstra(Graph* G, int* &D, int* &P, int s) {
@@ -466,7 +477,7 @@ void Dijikstra(Graph* G, int* &D, int* &P, int s) {
 		int u = Get_min(D, B, G->n);
 
 		for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next)
-			if(!B[tmp->id]) 
+			if (!B[tmp->id])
 				Relax(D, P, u, tmp->id, tmp->w);
 
 	}
@@ -482,12 +493,12 @@ bool Bellmann_Ford(Graph* G, int* &D, int* &P, int s) {
 
 	D[s] = 0;
 
-	for (int i = 0; i < G->n-1; i++) {
+	for (int i = 0; i < G->n - 1; i++) {
 		bool test = false;
 
 		for (int j = 0; j < G->n; i++)
 			for (Vertex* tmp = G->V[j]; tmp != NULL; tmp = tmp->next)
-				test=Relax(D, P, j, tmp->id, tmp->w);
+				test = Relax(D, P, j, tmp->id, tmp->w);
 
 		if (test == false) return true;
 	}
@@ -496,48 +507,192 @@ bool Bellmann_Ford(Graph* G, int* &D, int* &P, int s) {
 		for (Vertex* tmp = G->V[i]; tmp != NULL; tmp = tmp->next)
 			if (Relax(D, P, i, tmp->id, tmp->w)) return false;
 
-	delete[] B;
-
 	return true;
 }
 int** Floyd_Warshall(Graph* G) {
 	int** D = Transform_graph(G);
 
-	for (int k = 0; k < G->n; k++) 
-		for (int u = 0; u < G->n; u++) 
-			for (int v = 0; v < G->n; v++) 
-				if (D[u][v] > D[u][k] + D[k][v]) 
+	for (int k = 0; k < G->n; k++)
+		for (int u = 0; u < G->n; u++)
+			for (int v = 0; v < G->n; v++)
+				if (D[u][v] > D[u][k] + D[k][v])
 					D[u][v] = D[u][k] + D[k][v];
 
 	return D;
 }
 
-int** M(int n, int e, int k) {
+//Array Grapgh
+int** Init_graph2(int n, int e, int k) {
 	int** M = new int*[n];
 	for (int i = 0; i < n; i++)
 		M[i] = new int[n];
 
-	for (int i = 0; i < n; i++)
-		for (int j = i + 1; j < n; j++)
-			M[i][j] = 0;
-
-	for (int i = 0; i < e; i++) {
-		int x = rand() % n;
-		int y = rand() % n;
-
-		while (y <= x)
-			y = rand() % n;
-
-		M[x][y] = (rand() % k) + 1;
+	for (int i = 0; i < e; i++){
+		int x = rand() % n, y = rand() % n, w = rand() % k + 1;
+		while (x == y)  y = rand() % n;
+		M[x][y] = w;
+		M[y][x] = w;
 	}
+
+	return M;
 }
+void Print_graph2(int** M, int n) {
+	for (int i = 0; i < n; i++) {
+		cout << i << ": ";
+		for (int j = 0; j < n; j++) {
+			if (M[i][j] > 0) cout << j << " ";
+		}
+		cout << endl;
+	}
+	cout << endl;
+}
+void BFS2(int** M, int n, int* &D, int* &P, int s) {
+	bool *B = new bool[n];
+	for (int i = 0; i < n; i++) {
+		D[i] = INT_MAX;
+		P[i] = -1;
+		B[i] = false;
+	}
+
+	D[s] = 0;
+	B[s] = true;
+
+	Queue* Q = Init_queue();
+	Push_queue(Q, s);
+
+	while (!Empty_queue(Q)) {
+		int u = Pop_queue(Q);
+
+		for (int v = 0; v < n; v++) 
+			if (M[u][v] > 0 && !B[v]) {
+				B[v] = true;
+				D[v] = D[u] + 1;
+				P[v] = u;
+				Push_queue(Q, v);
+			}
+	}
+
+	delete[] B;
+}
+
+void DFS_visit2(int** M, int n, int* &P, bool* &B, int u) {
+	for (int v = 0; v < n; v++) 
+		if (M[u][v] > 0 && !B[v]) {
+			B[v] = true;
+			P[v] = u;
+			DFS_visit2(M, n, P, B, v);
+		}	
+
+	
+}
+void DFS2(int** M, int n, int* &P) {
+	bool *B = new bool[n];
+	for (int i = 0; i < n; i++) {
+		P[i] = -1;
+		B[i] = false;
+	}
+
+	for (int u = 0; u < n; u++) {
+		if (!B[u])
+			DFS_visit2(M, N, P, B, u);
+	}
+
+	delete[] B;
+}
+
+void Prim2(int** M, int n, int* &P) {
+	bool *B = new bool[n];
+	int *Key = new int[n];
+
+	for (int i = 0; i < n; i++) {
+		Key[i] = INT_MAX;
+		B[i] = false;
+		P[i] = -1;
+	}
+
+	Key[0] = 0;
+
+	for (int i = 0; i < n; i++) {
+
+		int u = Get_min(Key, B, n);
+
+		for (int v = 0; v < n; v++) {
+			if (M[u][v] > 0 && !B[v]) {
+				if (Key[v] > M[u][v]) {
+					Key[v] = M[u][v];
+					P[v] = u;
+				}
+			}
+		}
+
+	}
+
+	delete[] Key;
+	delete[] B;
+}
+
+void Dijikstra2(int **M, int n, int *&D, int*&P, int s) {
+	//Preparing
+	bool* B = new bool[n];
+
+	for (int i = 0; i < n; i++) {
+		D[i] = INT_MAX;
+		P[i] = -1;
+		B[i] = false;
+	}
+
+	D[s] = 0;
+
+	//Dijikstra
+	for (int i = 0; i < n; i++) {
+
+		int u = Get_min(D, B, n);
+
+		for (int v = 0; v < n; v++)
+			if (M[u][v] > 0 && !B[v])
+				Relax(D, P, u, v, M[u][v]);
+
+	}
+
+
+	delete[] B;
+}
+
+
+
 
 
 int main() {
 	srand(time(NULL));
-	Graph* G = Init_graph(N, E, K);
+	int **M = Init_graph2(N, E, K);
+	Print_graph2(M, N);
+	/*
+	Graph *G = Init_graph(N, E, K);
 	Print_graph(G);
+	*/
+	cout << endl;
 
-    return 0;
+
+	int  *D = new int[N], *P = new int[N];
+	
+
+	/*
+	for (int i = 0; i < N; i++) cout << i << ": Parent:" << P[i] << " Distance: " << D[i] << endl;
+	cout << endl;
+	*/
+
+	//Prim2(M, N, P);
+
+	Dijikstra2(M, N, D, P, 0);
+
+	for (int i = 0; i < N; i++) cout << i << ": Parent:" << P[i] << " Distance: " << D[i] << endl;
+	cout << endl;
+
+	//for (int i = 0; i < N; i++) cout << i << ": Parent:" << P[i] << endl;
+	//cout << endl;
+
+
+	
+	return 0;
 }
 
