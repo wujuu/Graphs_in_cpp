@@ -11,6 +11,15 @@ using namespace std;
 const int N = 10, E = 40, K = 50;
 
 
+//Other
+int Min(int a, int b) {
+	if (a > b) return b;
+	return b;
+}
+int Max(int a, int b) {
+	if (a > b) return a;
+	return b;
+}
 //Array
 void Swap(int* &A, int i, int j) {
 	int tmp = A[j];
@@ -379,37 +388,34 @@ void Eulerian_cycle(Graph* G, int *&K) {
 }
 
 	//MST
-void Prim(Graph* G, int* &P, int s=0) {
+void Prim(Graph* G, int* &P) {
 	//Preparing
 	bool* B = new bool[G->n];
-	int* D = new int[G->n];
-	heap* Q = Init_heap(G->n);
+	int* Key = new int[G->n];
 
 	for (int i = 0; i < G->n; i++) {
-		D[i] = INT_MAX;
+		Key[i] = INT_MAX;
 		P[i] = -1;
 		B[i] = false;
-		Push_heap(Q,Init_vertex(i,D[i]));
 	}
 
-	D[s] = 0;
-	Decr_key(H,)
+	Key[0] = 0;
 
 
 	//Prim
 	for (int i = 0; i < G->n; i++) {
-		int u = Get_min(D, B, G->n);
+		int u = Get_min(Key, B, G->n);
 
 		for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next) 
-			if (!B[tmp->id] && tmp->w < D[tmp->id]) {
+			if (!B[tmp->id] && tmp->w < Key[tmp->id]) {
 				P[tmp->id] = u;
-				D[tmp->id] = tmp->w;
+				Key[tmp->id] = tmp->w;
 			}
 
 	}
 
 	delete[] B;
-	delete[] D;
+	delete[] Key;
 }
 void Kruskal(Graph* G, int* &P) {
 	node** F = new node*[G->n];
@@ -506,6 +512,25 @@ int** Floyd_Warshall(Graph* G) {
 	return D;
 }
 
+int** M(int n, int e, int k) {
+	int** M = new int*[n];
+	for (int i = 0; i < n; i++)
+		M[i] = new int[n];
+
+	for (int i = 0; i < n; i++)
+		for (int j = i + 1; j < n; j++)
+			M[i][j] = 0;
+
+	for (int i = 0; i < e; i++) {
+		int x = rand() % n;
+		int y = rand() % n;
+
+		while (y <= x)
+			y = rand() % n;
+
+		M[x][y] = (rand() % k) + 1;
+	}
+}
 
 
 int main() {
