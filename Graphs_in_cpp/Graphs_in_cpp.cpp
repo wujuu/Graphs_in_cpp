@@ -47,6 +47,26 @@ void Push_vertex(Vertex* &first, Vertex* x) {
 	first = x;
 }
 
+//Stack
+struct Stack {
+	Vertex* top;
+};
+Stack *Init_stack() {
+	Stack* S = new Stack;
+	S->top = NULL;
+}
+bool Empty_stack(Stack *S) {
+	if (S->top == NULL) return true;
+	else return false;
+}
+int Pop_stack(Stack *S) {
+	int x = S->top->id;
+	S->top = S->top->next;
+}
+void Push_stack(Stack *&S, Vertex *x) {
+	Push_vertex(S->top, x);
+}
+
 //Queue
 struct Queue {
 	Vertex* head, *tail;
@@ -208,6 +228,8 @@ struct Graph {
 	int n;
 	int e;
 };
+
+	//Basic
 Graph* Init_graph(int n, int e, int k) {
 	Graph* G = new Graph;
 	G->n = n;
@@ -250,6 +272,8 @@ void Print_graph(Graph* G) {
 		cout << endl;
 	}
 }
+
+	//Traversal
 void BFS(Graph* G, int* &D, int* &P, int s) {
 	//Preparing
 	bool* B = new bool[G->n];
@@ -285,22 +309,16 @@ void BFS(Graph* G, int* &D, int* &P, int s) {
 
 	delete[] B;
 }
-void DFS_visit(Graph* G, int* &P, int* &I, int * &O, bool* &B, int u, int &time){
-	time++;
-	I[u] = time;
 
-	B[u] = true;
+void DFS_visit(Graph* G, int* &P, bool* &B, int u){
 
 	for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next) 
 		if (!B[tmp->id]) {
 			P[tmp->id] = u;
-			DFS_visit(G, P, I, O, B, tmp->id, time);
+			DFS_visit(G, P, B, tmp->id);
 		}
-
-	time++;
-	O[u] = time;
 }
-void DFS(Graph* G, int* &P, int* &I, int * &O) {
+void DFS(Graph* G, int* &P) {
 	//Preparing
 	bool* B = new bool[G->n];
 
@@ -309,14 +327,58 @@ void DFS(Graph* G, int* &P, int* &I, int * &O) {
 		B[i] = false;
 	}
 
-	int time = 0;
-
 	//DFS
 	for (int i = 0; i < G->n; i++)
-		if (!B[i]) DFS_visit(G, P, I, O, B, i, time);
+		if (!B[i])
+			DFS_visit(G, P, B, i);
 
 	delete[] B;
 }
+
+void Topological_sort_visit(Graph* G, Stack* &S, bool* &B, int u) {
+
+	for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next)
+		if (!B[tmp->id]) 
+			Topological_sort_visit(G, S, B, tmp->id);
+
+	Push_stack(S, Init_vertex(u, 0));
+}
+void Topological_sort(Graph* G, int *&K) {
+	bool* B = new bool[G->n];
+	Stack *S = Init_stack();
+
+	for (int i = 0; i < G->n; i++) B[i] = false;
+	
+	Topological_sort_visit(G, S, B, 0);
+
+	for (int i = 0; i < G->n; i++) K[i] = Pop_stack(S);
+
+	delete[] B;
+	delete S;
+}
+
+void Eulerian_cycle_visit(Graph *G, int **&M, Stack *&S, int u) {
+
+	for (Vertex* tmp = G->V[u]; tmp != NULL; tmp = tmp->next)
+		if (M[u][tmp->id] != INT_MIN) {
+			M[u][tmp->id] == INT_MIN;
+			Eulerian_cycle_visit(G, M, S, tmp->id);
+		}
+
+	Push_stack(S, Init_vertex(u, 0));
+}
+void Eulerian_cycle(Graph* G, int *&K) {
+	int** M = Transform_graph(G);
+	Stack *S = Init_stack();
+
+	Eulerian_cycle_visit(G, M, S, 0);
+
+	for (int i = 0; i < G->n; i++) { K[i] = Pop_stack(S); delete[] M[i]; }
+	
+	delete S;
+}
+
+	//MST
 void Prim(Graph* G, int* &P, int s=0) {
 	//Preparing
 	bool* B = new bool[G->n];
@@ -369,6 +431,8 @@ void Kruskal(Graph* G, int* &P) {
 
 	delete[] F;
 }
+
+	//Shortest Paths
 bool Relax(int* &D, int *&P,  int start, int end, int weight) {
 	if (D[end] > D[start] + weight) {
 		D[end] = D[start] + weight;
